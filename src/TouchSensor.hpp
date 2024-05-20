@@ -5,14 +5,16 @@
 
 struct TouchSensor {
 private:
-  uint8_t PIN;
-  const uint16_t threshold;
+  const int PIN;
+  const int threshold;
   
-  uint16_t refValue;
-  uint16_t rawValue;
+  int refValue;
+  int rawValue;
+  
+  bool _state = false;
 
 public:
-  TouchSensor(uint8_t pin, uint16_t threshold = 40) : PIN(pin), threshold(threshold){};
+  TouchSensor(int pin, int threshold = 40) : PIN(pin), threshold(threshold){};
 
   void calibrate() {
     refValue = ADCTouch.read(PIN, 500);
@@ -24,6 +26,24 @@ public:
 
   bool isTouching() {
     return rawValue > threshold;
+  }
+
+  bool wasTouched() {
+      bool v = isTouching();
+      if (v && !_state) {
+          _state = v;
+          return true;
+      }
+      return false;
+  }
+
+  bool wasReleased() {
+    bool v = isTouching();
+    if (_state && !v) {
+      _state = v;
+      return true;
+    }
+    return false;  
   }
 };
 

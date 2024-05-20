@@ -8,7 +8,7 @@ USBMIDI_CREATE_DEFAULT_INSTANCE();
 
 Fader faders[] = {
   Fader(A1, 7, 6, A2),
-  Fader(A0, 9, 8, A3)
+  //Fader(A0, 9, 8, A3)
 };
 
 void handlePitchBend(byte channel, int bend) {
@@ -22,13 +22,13 @@ void handlePositionUpdate(int16_t mapped, uint8_t channel) {
 }
 
 void setup() {
+  Serial.begin(31250);
+  MIDI.begin(0);
+  MIDI.setHandlePitchBend(handlePitchBend);
   for (uint8_t i = 0; i < FADERS_SIZE; i++) {
     faders[i].calibrate();
     faders[i].setUpdatePositionCallback(handlePositionUpdate);
   }
-  Serial.begin(31250);
-  MIDI.begin(0);
-  MIDI.setHandlePitchBend(handlePitchBend);
 }
 
 void loop() {
