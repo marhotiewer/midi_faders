@@ -16,12 +16,12 @@ private:
 public:
   TouchSensor(int pin, int threshold = 40) : PIN(pin), threshold(threshold){};
 
-  void calibrate() {
-    refValue = ADCTouch.read(PIN, 500);
+  void calibrate(int samples = 500) {
+    refValue = ADCTouch.read(PIN, samples);
   }
 
-  void update() {
-    rawValue = ADCTouch.read(PIN) - refValue;
+  void update(int samples = 100) {
+    rawValue = ADCTouch.read(PIN, samples) - refValue;
   }
 
   bool isTouching() {

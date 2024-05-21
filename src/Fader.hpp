@@ -4,8 +4,6 @@
 #include <Arduino.h>
 #include "TouchSensor.hpp"
 
-#define  SMOOTHING_SAMPLE_SIZE  300
-
 struct Fader {
 private:
   const uint8_t FADER;
@@ -19,7 +17,7 @@ private:
   uint32_t previousMillis = 0;
   uint32_t currentMillis = 0;
 
-  void (*updatePositionCallback)(int16_t, uint8_t);
+  void (*updatePositionCallback)(uint8_t, int16_t);
 
   void debug(int channel, String status = "") {
     Serial.print("(Fader ");
@@ -40,12 +38,16 @@ public:
     digitalWrite(BOUT, LOW);
   }
 
-  void setUpdatePositionCallback(void (*callback)(int16_t, uint8_t)) {
+  void setUpdatePositionCallback(void (*callback)(uint8_t, int16_t)) {
     updatePositionCallback = callback;
   }
 
   void setTarget(int16_t position) {
     target_pos = map(position, 8176, -8192, 0, 1023);
+  }
+
+  int16_t getPosition() {
+    return map(position, 0, 1023, 8176, -8192);
   }
 
   void calibrate() {
@@ -57,22 +59,8 @@ public:
     currentMillis = millis();
     if (currentMillis - previousMillis >= 100) {
       previousMillis = currentMillis;
-      sensor.update();
-      if (channel == 1) {
-        debug(channel, (String)"pos: " + position + " target: " + target_pos + " touch: " + sensor.isTouching());
-      }  
+      sensor.update(25);
     }
-
-    if (sensor.wasReleased()) {
-      debug(channel, "was released");
-      target_pos = position;
-    }
-    else if (sensor.wasTouched()) {
-      digitalWrite(FOUT, LOW);
-      digitalWrite(BOUT, LOW);
-      debug(channel, "was touched");
-    }
-
     if (!sensor.isTouching()) {
       if (abs(position - target_pos) > 8) {
         if (position > target_pos) {
@@ -90,9 +78,10 @@ public:
       }
     }
     else {
+      digitalWrite(FOUT, LOW);
+      digitalWrite(BOUT, LOW);
       if (updatePositionCallback != nullptr) {
-        int mapped = map(position, 0, 1023, 8176, -8192);
-        updatePositionCallback(mapped, channel);
+        updatePositionCallback(channel, getPosition());
       }
     }
   }
