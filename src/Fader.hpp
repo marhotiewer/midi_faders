@@ -14,9 +14,6 @@ private:
   uint16_t target_pos;
   uint16_t position;
 
-  uint32_t previousMillis = 0;
-  uint32_t currentMillis = 0;
-
   void (*updatePositionCallback)(uint8_t, int16_t);
 
   void debug(int channel, String status = "") {
@@ -56,11 +53,8 @@ public:
 
   void update(int channel) {
     position = analogRead(FADER);
-    currentMillis = millis();
-    if (currentMillis - previousMillis >= 100) {
-      previousMillis = currentMillis;
-      sensor.update(25);
-    }
+    sensor.update(25);
+
     if (!sensor.isTouching()) {
       if (abs(position - target_pos) > 8) {
         if (position > target_pos) {

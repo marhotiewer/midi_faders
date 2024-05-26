@@ -13,6 +13,9 @@ private:
   
   bool _state = false;
 
+  unsigned long previousMillis = 0;
+  unsigned long currentMillis = 0;
+
 public:
   TouchSensor(int pin, int threshold = 40) : PIN(pin), threshold(threshold){};
 
@@ -21,7 +24,11 @@ public:
   }
 
   void update(int samples = 100) {
-    rawValue = ADCTouch.read(PIN, samples) - refValue;
+    currentMillis = millis();
+    if (currentMillis - previousMillis >= 50) {
+      previousMillis = currentMillis;
+      rawValue = ADCTouch.read(PIN, samples) - refValue;
+    }
   }
 
   bool isTouching() {
